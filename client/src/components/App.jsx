@@ -4,8 +4,6 @@ import Room from "./Room";
 import Home from "./Home";
 
 import "../main.css";
-
-
 /**
  * Define the "App" component as a class.
  */

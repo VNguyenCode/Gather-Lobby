@@ -9,3 +9,7 @@ input {
   font: inherit;
   outline: inherit;
 }
+
+body {
+  font-family: Montserrat;
+}
