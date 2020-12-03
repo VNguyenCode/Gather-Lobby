@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { navigate } from "@reach/router";
 import player1 from "../public/1.png";
+import "../main.css";
 import { faFileExcel } from "@fortawesome/free-solid-svg-icons";
+
 
 const imgStyleObj = {
   width: '100px', 
@@ -30,10 +32,38 @@ const subTitleObj = {
   fontWeight: '600',
   fontStyle: 'normal', 
   fontSize: '24px',
-  lineHeight:'29.26px',
-  
+  lineHeight:'29.26px',  
 }
 
+const inputRoomObj = {
+  background:'#ECECEC',
+  borderRadius: '15px', 
+  width:'348px',
+  height: '32px',
+  textAlign:'center'
+}
+
+const buttonContainerObj = {
+  marginTop:'50px',
+  width: '171px', 
+  height: '45px',
+  background: '#86D3FF', 
+  borderRadius: '10px',
+  display:'flex',
+  justifyContent: 'center',
+  alignItems: 'center'
+}
+
+const buttonTextObj = {
+  width: '65px',
+  height: '27px',
+  fontStyle: 'normal', 
+  fontWeight: 600,
+  fontSize: '22px', 
+  lineHeight: '27px',
+  letterSpacing: '0.04em',
+  color: '#FFFFFF'
+}
 
 const Home = () => {
   //state to hold roomId
@@ -51,20 +81,20 @@ return(
         <p style = {subTitleObj}>Join a room</p>
       
     
-      <form className="submit" onSubmit={enterRoom}>
+      <form  id = 'submit' onSubmit={enterRoom}>
         <input
           type="text"
-          className="formInput"
+          style = {inputRoomObj}
           value={roomId}
           onChange={e => setroomId(e.target.value)}
           placeholder = "enter room id here"
-        />
+        />              
+    
+      </form> 
 
-      <div className = "btnContainer">
-        <button id="btnEnter">enter</button>
-      </div>
-
-      </form>    
+      <div style = {buttonContainerObj}>
+        <button style = {buttonTextObj} type = 'submit' form = 'submit' id="btnEnter">enter</button>
+      </div> 
     </div>
   </>
   );
