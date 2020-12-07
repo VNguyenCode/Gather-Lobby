@@ -1,9 +1,113 @@
 import React, { useEffect, useState } from "react";
 import { initSocket, sendMessage, ws } from "../client-socket.js";
 import { idToCharacter, changeCharacter } from "../utils";
-import Avatar from './Avatar'
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons";
+import Avatar from "./Avatar";
 
 import "../main.css";
+
+const rightContainer = {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  height: "100vh",
+  gridArea: "right",
+};
+
+const leftContainer = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gridArea: "left",
+  height: "100vh",
+  flexWrap: "wrap",
+};
+
+const roomHeader = {
+  fontStyle: "normal",
+  fontWeight: 600,
+  fontSize: "34px",
+  lineHeight: "41px",
+  letterSpacing: "0.04em",
+  color: "#000000",
+  textAlign: "center",
+};
+
+const roomSubHeader = {
+  fontStyle: "normal",
+  fontWeight: 600,
+  fontSize: "24px",
+  lineHeight: "29px",
+  letterSpacing: "0.04em",
+  color: "#222222",
+  textAlign: "center",
+};
+
+const avatarPic = {
+  width: "140px",
+  height: "140px",
+  margin: "40px",
+};
+
+const avatarContainer = {
+  display: "flex",
+  alignItems: "center",
+};
+
+const mainContainer = {
+  display: "grid",
+  height: "100vh",
+  gridTemplateColumns: "1fr 1fr 1fr",
+  gridTemplateRows: "1fr 1fr 1fr",
+  gridTemplateAreas: `
+  'left right right'
+  'left right right'
+  `,
+};
+
+const arrow = {
+  border: "4px",
+  fontSize: "24px",
+  cursor: "pointer",
+};
+
+const inputHeader = {
+  fontStyle: "normal",
+  fontWeight: 600,
+  fontSize: "24px",
+  lineHeight: "29px",
+  letterSpacing: "0.04em",
+  color: "#222222",
+  textAlign: "center",
+};
+
+const nameObj = {
+  background: "#F2F2F2",
+  borderRadius: "15px",
+  width: "348px",
+  height: "32px",
+  fontSize: "16px",
+  textAlign: "center",
+  letterSpacing: "0.04em",
+  lineHeight: "20px",
+};
+
+const bioObj = {
+  background: "#F2F2F2",
+  borderRadius: "15px",
+  width: "494px",
+  height: "107px",
+  textAlign: "center",
+  fontSize: "16px",
+  lineHeight: "20px",
+};
+
+const innerLeft = {
+  height: "100%",
+  width: "100%",
+};
 
 /***
  *
@@ -28,9 +132,12 @@ import "../main.css";
  */
 
 const Room = ({ roomId }) => {
+  const [userId, setUserId] = useState("");
+  const [roomUsers, setRoomUsers] = useState("");
+  const [currentId, setCurrentId] = useState("");
+  const [avatar, setAvatar] = useState("");
+  const [userArr, setUserArr] = useState([]);
 
-  const [myInfo,setMyInfo] = useState("")
-  const [users,setUsers] = useState("")
   /*
   Right now updateCharacter sets the characterId to 1 only — you're
   going to want to make use of the imported function changeCharacter,
@@ -70,19 +177,17 @@ const Room = ({ roomId }) => {
     ws.onmessage = (msg) => {
       let data = JSON.parse(msg.data);
       if (data.event === "connection") {
-        console.log("MY USER ID IS", data.info);        
-        setMyInfo(data.info)  
+        console.log("MY USER ID IS", data.info);
+        // console.log("USER_ID", userId);
         sendMessage({
           event: "join",
           info: {
             room: roomId,
           },
         });
+        setUserId(data.info);
       } else if (data.event === "roomUpdate") {
-
-        setUsers(data.info)
         /* Room Updates take the form of:
-
             { 
                 userID1 : {
                     characterId: number,
@@ -94,10 +199,9 @@ const Room = ({ roomId }) => {
                 }
                 ...
             }
-
             # put into state? 
         */
-        console.log("GOT ROOM UPDATE", data.info);
+        setRoomUsers(data.info);
       }
     };
     return () => {
@@ -105,29 +209,51 @@ const Room = ({ roomId }) => {
     };
   }, []);
 
-  let usersArr = []
+  useEffect(() => {
+    let userArr = [];
+    for (let key in roomUsers) {
+      let charId = roomUsers[key].characterId;
+      let avatar = idToCharacter(charId);
+      if (key === userId) {
+        setCurrentId(charId);
+        setAvatar(avatar);
+      }
+      userArr.push(<Avatar key={key} name={roomUsers[key].name} avatar={avatar} />);
+    }
+    setUserArr(userArr);
+  }, [roomUsers]);
 
-  // Assume we want our user to be the first one - then we'll always make our user the first one to show up 
-  for (let myId in myInfo){
-    usersArr.push(
-      <Avatar 
-      key = {myId}
-      name = {myInfo[myId].name}
-      />
-    )
-  }
+  const handleClick = (num) => {
+    let newId = changeCharacter(currentId, num);
+    let avatar = idToCharacter(newId);
+    setCurrentId(newId);
+    setAvatar(avatar);
+  };
 
-  //iterate through update users object
-  for (let userId in users){
-    usersArr.push(
-      <Avatar 
-      key = {userId}
-      name = {users[userId].name}
-      /> 
-    )
-  }
-  return <>Room!</>
-  
+  return (
+    <>
+      <div style={mainContainer}>
+        <div style={leftContainer}>{userArr}</div>
+        <div style={rightContainer}>
+          <h1 style={roomHeader}>Customize Your Look!</h1>
+          <p style={roomSubHeader}>Avatar</p>
+
+          <div style={avatarContainer}>
+            <FontAwesomeIcon onClick={() => handleClick(-1)} icon={faArrowLeft} style={arrow} />
+            <img style={avatarPic} src={avatar} alt="home avatar" />
+            <FontAwesomeIcon onClick={() => handleClick(1)} icon={faArrowRight} style={arrow} />
+          </div>
+
+          <p style={inputHeader}>Name</p>
+          <form id="submit">
+            <input type="text" style={nameObj} placeholder="Enter Name Here" />
+          </form>
+          <p style={inputHeader}>Bio</p>
+          <input type="text" style={bioObj} form="submit" placeholder="Enter Bio Here" />
+        </div>
+      </div>
+    </>
+  );
 };
 
 export default Room;
